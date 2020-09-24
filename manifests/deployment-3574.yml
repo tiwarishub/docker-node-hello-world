@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "aaaaabugbashprovsvcrouting-cc3e"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "aaaaabugbashprovsvcrouting-cc3e"
+  template:
+    metadata:
+      labels:
+        app: "aaaaabugbashprovsvcrouting-cc3e"
+    spec:
+      containers:
+        - name: "aaaaabugbashprovsvcrouting-cc3e"
+          image: "aaaaabugbashprovsvcroutingacr1.azurecr.io/aaaaabugbashprovsvcrouting280f"
+          ports:
+          - containerPort: 4000
