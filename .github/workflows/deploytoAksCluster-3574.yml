@@ -1,0 +1,63 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: actions/checkout@master
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS_GITHUB_SECRET}}
+
+    - name: Create ACR
+      id: create-acr
+      run: |
+        az acr create -n aaaaabugbashProvSvcRoutingacr1 -g aaaaabugbashProvSvcRoutingacr182e3-rg --location "South Central US" --sku Basic --admin-enabled
+        echo "::set-output name=acr_username::`az acr credential show -n aaaaabugbashProvSvcRoutingacr1 --query username | xargs`"
+        echo "::set-output name=acr_password::`az acr credential show -n aaaaabugbashProvSvcRoutingacr1 --query passwords[0].value | xargs`"
+        echo "::add-mask::`az acr credential show -n aaaaabugbashProvSvcRoutingacr1 --query passwords[0].value | xargs`"
+
+    - uses: azure/docker-login@v1
+      with:
+        login-server: aaaaabugbashprovsvcroutingacr1.azurecr.io
+        username: ${{steps.create-acr.outputs.acr_username}}
+        password: ${{steps.create-acr.outputs.acr_password}}
+
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/." -f  "Dockerfile" -t aaaaabugbashprovsvcroutingacr1.azurecr.io/aaaaabugbashprovsvcrouting280f:${{github.sha}}
+        docker push aaaaabugbashprovsvcroutingacr1.azurecr.io/aaaaabugbashprovsvcrouting280f:${{github.sha}}
+    
+    - uses: azure/k8s-set-context@v1
+      id: login
+      with:
+         kubeconfig: ${{secrets.aks_aaaaabugbashprovsvcrouting_kubeConfig}}
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep aaaaabugbashprovsvcroutingd2d0 | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace aaaaabugbashprovsvcroutingd2d0`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: aaaaabugbashprovsvcroutingd2d0
+        container-registry-url: aaaaabugbashprovsvcroutingacr1.azurecr.io
+        container-registry-username: ${{steps.create-acr.outputs.acr_username}}
+        container-registry-password: ${{steps.create-acr.outputs.acr_password}}
+        secret-name: aaaaabugbashdockerauth
+       
+    - uses: azure/k8s-deploy@v1
+      with:
+        namespace: aaaaabugbashprovsvcroutingd2d0
+        manifests: |
+          manifests/deployment-3574.yml
+          manifests/service-3574.yml
+        images: |
+          aaaaabugbashprovsvcroutingacr1.azurecr.io/aaaaabugbashprovsvcrouting280f:${{github.sha}}
+        imagepullsecrets: |
+          aaaaabugbashdockerauth
