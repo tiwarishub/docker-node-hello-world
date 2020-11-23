@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: "aaaatiwarishub2aks-e95e"
+    labels:
+        app: "aaaatiwarishub2aks-e95e"
+spec:
+    type: LoadBalancer
+    ports:
+    - port: 4000
+      targetPort: 4000
+      protocol: TCP
+      name: http
+    selector:
+        app: "aaaatiwarishub2aks-e95e"
