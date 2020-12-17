@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "aatiwarishubaks-f978"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "aatiwarishubaks-f978"
+  template:
+    metadata:
+      labels:
+        app: "aatiwarishubaks-f978"
+    spec:
+      containers:
+        - name: "aatiwarishubaks-f978"
+          image: "aaaatiwarishubregistry.azurecr.io/aatiwarishubaksf978"
+          ports:
+          - containerPort: 4000
