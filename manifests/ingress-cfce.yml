@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: "aatiwarishubaks-cfce"
+    labels:
+        app: "aatiwarishubaks-cfce"
+    annotations:
+        kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+    rules:
+        - host: aatiwarishubakscfce-aatiwarishubaks-cfce.be227b09cf9f4edc992f.eastus.aksapp.io
+          http:
+            paths:
+            - path: /
+              backend:
+                serviceName: "aatiwarishubaks-cfce"
+                servicePort: 4000
